@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reserve Your Gemstone | Celvyr</title>
+<meta name="description" content="Reserve your Celvyr gemstone.">
+<meta property="og:title" content="Reserve Your Gemstone | Celvyr">
+<meta property="og:description" content="Reserve your Celvyr gemstone.">
+<meta property="og:image" content="https://celvyr.com/assets/hero-sapphire.jpg">
+<meta name="theme-color" content="#15233A">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Gelasio&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body data-page="checkout">
+<div id="site-header"></div>
+<main>
+
+<div class="wrap">
+  <div class="crumbs"><a href="index.html">Home</a><i>/</i><a href="bag.html">Shopping bag</a><i>/</i>Reserve</div>
+  <div class="page-head"><div class="eyebrow">The final details</div><h1 class="h-xl">Make it yours.</h1></div>
+  <div class="steps"><span><b>01 Your details</b></span><span>→</span><span>02 We confirm the stone &amp; delivery</span><span>→</span><span>03 Secure payment</span></div>
+  <form class="two-col" id="coForm" style="padding-bottom:84px">
+    <div>
+      <div class="form-sec"><h2 class="serif">Contact information</h2>
+        <div class="field"><label>Email address</label><input name="email" type="email" required placeholder="you@example.com"></div>
+        <div class="field"><label>Phone / WhatsApp</label><input name="phone" required placeholder="+94"></div>
+        <label class="check"><input type="checkbox" name="news"> Tell me when new gemstones arrive</label>
+      </div>
+      <div class="form-sec"><h2 class="serif">Delivery address</h2>
+        <div class="row2"><div class="field"><label>First name</label><input name="first" required placeholder="First name"></div><div class="field"><label>Last name</label><input name="last" required placeholder="Last name"></div></div>
+        <div class="field"><label>Country / region</label><input name="country" required value="Sri Lanka"></div>
+        <div class="field"><label>Street address</label><input name="street" required placeholder="Street address"></div>
+        <div class="field"><label>Apartment, suite, etc. (optional)</label><input name="apt" placeholder="Apartment, suite, etc."></div>
+        <div class="row2"><div class="field"><label>City</label><input name="city" required placeholder="City"></div><div class="field"><label>Postal code</label><input name="postal" placeholder="Postal code"></div></div>
+      </div>
+      <div class="form-sec"><h2 class="serif">Delivery method</h2>
+        <div class="radio-box"><div><b>Insured delivery, arranged by Celvyr</b><small>Tracked and fully insured. Options confirmed for your destination.</small></div><span class="muted">Quoted for you</span></div>
+      </div>
+      <div class="form-sec" style="border-bottom:0"><h2 class="serif">Payment</h2>
+        <div class="field"><label>How would you like to pay?</label>
+          <select name="pay"><option>Bank transfer</option><option>Secure card payment link</option><option>Pay in person at a viewing</option></select></div>
+        <p class="muted" style="font-size:13px">No card details are taken on this site. Once we've confirmed your stone and delivery cost, we'll send secure payment instructions directly to you.</p>
+      </div>
+      <p><a class="link-back" href="bag.html">← Return to shopping bag</a></p>
+    </div>
+    <aside>
+      <div class="summary">
+        <h2 class="serif">Order summary</h2>
+        <div id="coItems"></div>
+        <div class="sum-row"><span>Subtotal</span><span id="coSub"></span></div>
+        <div class="sum-row"><span>Delivery</span><span>Quoted for your address</span></div>
+        <div class="sum-row"><span>Taxes / duties</span><span>Confirmed before payment</span></div>
+        <div class="sum-total"><span>Estimated total</span><span id="coTotal"></span></div>
+        <p class="muted" style="font-size:12.5px;margin:14px 0 22px">Reserving is free and holds the stone for you while we confirm the final details together.</p>
+        <button class="btn btn-dark btn-block" type="submit" data-via="wa">Reserve on WhatsApp</button>
+        <button class="btn btn-line btn-block" type="submit" data-via="email" style="margin-top:10px">Reserve by email</button>
+        <p class="tiny">Nothing is charged today</p>
+      </div>
+      <div class="guide"><h3 class="serif">A little guidance?</h3><p>We'll happily review the stone and its details with you before you decide.</p><a class="link-under" href="contact.html">Contact Celvyr</a></div>
+    </aside>
+  </form>
+</div>
+
+</main>
+<div id="site-footer"></div>
+<script src="assets/catalogue.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>
