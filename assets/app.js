@@ -67,7 +67,7 @@
       <nav class="nav">${navItems.map(([h, t, k]) => `<a href="${h}" class="${page === k || (page === "gem" && k === "gemstones") ? "active" : ""}">${t}</a>`).join("")}</nav>
       <div class="head-right">
         <button class="cur" id="curToggle" title="Switch currency"><span class="${cur === "LKR" ? "on" : ""}">LKR</span> / <span class="${cur === "USD" ? "on" : ""}">USD</span></button>
-        <a class="bag-btn" href="bag.html">Bag (<span id="bagCount">0</span>)</a>
+        <a class="bag-btn" href="bag.html" aria-label="Shopping bag"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8h12l-1 12H7L6 8z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8" fill="none" stroke="currentColor" stroke-width="1.4"/></svg><span class="bag-count" id="bagCount">0</span></a>
         <button class="burger" aria-label="Menu"><span></span></button>
       </div>
     </div></header>`;
@@ -85,7 +85,7 @@
     </div></footer><div class="toast" id="toast"></div>`;
   }
   function toast(msg) { const t = $("#toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove("show"), 2400); }
-  function updateBagCount() { const el = $("#bagCount"); if (el) el.textContent = getBag().length; }
+  function updateBagCount() { const el = $("#bagCount"); if (el) { const n = getBag().length; el.textContent = n; el.classList.toggle("empty", !n); } }
 
   /* ---------- product card ---------- */
   function card(g) {
@@ -114,7 +114,7 @@
 
   /* ---------- pages ---------- */
   const pages = {
-    home() { renderGrid($("#featured"), GEMS.slice(0, 3)); },
+    home() { renderGrid($("#featured"), GEMS.slice(0, 4)); },
 
     gemstones() {
       const state = { type: "All", shade: "", cut: "", price: "", sort: "featured" };
