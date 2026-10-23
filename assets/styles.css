@@ -311,3 +311,25 @@ main{animation:pageIn .7s ease .45s both}
 .wa-float:hover{transform:translateY(-2px);box-shadow:0 12px 28px rgba(21,35,58,.28)}
 .wa-float svg{width:24px;height:24px;flex-shrink:0}
 @media (max-width:620px){.wa-float{right:14px;bottom:14px;padding:13px}.wa-float span{display:none}}
+
+/* ---------- Founder ---------- */
+.founder{display:grid;grid-template-columns:.9fr 1.1fr;gap:64px;align-items:center}
+.founder-photo{margin:0;position:relative}
+.founder-photo img{width:100%;height:auto;aspect-ratio:4/5;object-fit:cover;object-position:50% 40%}
+.founder-photo figcaption{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-top:12px}
+.founder h2{margin:18px 0 24px}
+.founder .lead{margin-bottom:26px}
+.founder-quote{font-family:var(--serif);font-size:24px;line-height:1.35;border-left:2px solid var(--gold-soft);padding-left:20px;margin:0 0 30px}
+.founder-quote cite{display:block;font-style:normal;font-family:var(--sans);font-size:12px;color:var(--muted);margin-top:10px;letter-spacing:.06em}
+.founder-story .founder{align-items:start}
+.founder-story .founder-photo{position:sticky;top:110px}
+.chapters > div{border-top:1px solid var(--rule);padding:22px 0}
+.chapters .num{font-size:12px;color:var(--gold);letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px}
+.chapters p{color:var(--muted);font-size:15px;line-height:1.7}
+.letter{background:var(--card);padding:56px clamp(22px,6vw,90px);margin-top:72px;text-align:center}
+.letter .eyebrow{margin-bottom:26px}
+.letter p{font-family:var(--serif);font-size:clamp(19px,2.1vw,24px);line-height:1.55;max-width:760px;margin:0 auto 18px}
+.letter .sign{margin:30px 0 30px}
+.letter .sig{display:block;font-family:var(--serif);font-style:italic;font-size:30px}
+.letter .sign small{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold)}
+@media (max-width:980px){.founder{grid-template-columns:1fr;gap:36px}.founder-story .founder-photo{position:static}.founder-photo img{aspect-ratio:1/1;object-position:50% 62%}}
