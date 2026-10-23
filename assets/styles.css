@@ -265,7 +265,17 @@ details p{color:var(--muted);font-size:14px;margin-top:14px}
   .logo small{font-size:7.5px}
   .hero-copy{padding:48px 16px}
   .hero-img .cap{left:16px;right:16px;flex-direction:column;gap:6px}
-  .grid{grid-template-columns:1fr}
+  .grid{grid-template-columns:repeat(2,1fr);gap:22px 12px}
+  .card-img{aspect-ratio:1/1}
+  .card-img svg{width:58%}
+  .tag{top:8px;left:8px;font-size:7.5px;letter-spacing:.1em;padding:4px 6px}
+  .heart{top:4px;right:6px;font-size:17px}
+  .card-meta{font-size:11px;margin-top:12px}
+  .card h3{font-size:18px;padding-bottom:12px}
+  .card-foot{font-size:12px;padding-top:10px;flex-wrap:wrap;gap:4px}
+  .card-foot span:last-child{display:none}
+  .chips{gap:6px;flex-wrap:nowrap}
+  .chip{padding:10px 10px;font-size:12px;white-space:nowrap}
   .section{padding:60px 0}
   .section-head,.cta-row,.band{flex-direction:column;align-items:flex-start}
   .band{padding:30px 22px}
