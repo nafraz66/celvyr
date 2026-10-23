@@ -228,4 +228,20 @@
   $("#curToggle").addEventListener("click", () => { store.set("celvyr_cur", getCur() === "LKR" ? "USD" : "LKR"); location.reload(); });
   $$("[data-cfg-wa]").forEach((a) => (a.href = waLink(a.dataset.cfgWa)));
   if (pages[page]) pages[page]();
+
+  /* ---------- page-to-page loader ---------- */
+  const loader = document.createElement("div");
+  loader.className = "page-loader";
+  loader.innerHTML = '<div class="ld-gem"></div><div class="ld-word"></div><div class="ld-bar"></div>';
+  document.body.appendChild(loader);
+  document.addEventListener("click", (e) => {
+    const a = e.target.closest("a[href]");
+    if (!a || e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0 || a.target === "_blank") return;
+    const url = new URL(a.href, location.href);
+    if (url.origin !== location.origin || (url.pathname === location.pathname && url.search === location.search)) return;
+    e.preventDefault();
+    loader.classList.add("on");
+    setTimeout(() => (location.href = url.href), 320);
+  });
+  window.addEventListener("pageshow", (e) => { if (e.persisted) loader.classList.remove("on"); });
 })();

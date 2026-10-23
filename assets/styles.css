@@ -279,3 +279,19 @@ details p{color:var(--muted);font-size:14px;margin-top:14px}
   .pillars .wrap{flex-direction:column;align-items:center;gap:8px}
   .rooted{padding:24px}
 }
+
+/* ---------- Page loader ---------- */
+@keyframes ldGem{0%{transform:translate(-50%,-50%) rotateY(0)}100%{transform:translate(-50%,-50%) rotateY(360deg)}}
+@keyframes ldOut{to{opacity:0;visibility:hidden}}
+@keyframes ldBar{0%{transform:scaleX(0);transform-origin:left}50%{transform:scaleX(1);transform-origin:left}50.1%{transform-origin:right}100%{transform:scaleX(0);transform-origin:right}}
+@keyframes pageIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+body::before,body::after{content:"";position:fixed;z-index:300;pointer-events:none}
+body::before{inset:0;background:var(--paper) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 120'%3E%3Ctext x='200' y='62' text-anchor='middle' font-family='Palatino Linotype,Palatino,Book Antiqua,Georgia,serif' font-size='30' letter-spacing='7' fill='%2315233A'%3ECELVYR%3C/text%3E%3Ctext x='200' y='90' text-anchor='middle' font-family='Helvetica Neue,Arial,sans-serif' font-size='9' letter-spacing='4.5' fill='%23A57D4A'%3EFINE GEMS %C2%B7 SRI LANKA%3C/text%3E%3C/svg%3E") center calc(50% + 34px)/400px 120px no-repeat;animation:ldOut .4s ease .45s forwards}
+body::after{left:50%;top:calc(50% - 22px);width:46px;height:46px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cpath d='M20 2 L36 14 L20 38 L4 14Z' fill='%232437B8'/%3E%3Cpath d='M4 14 L36 14 L20 38Z' fill='%23141E63'/%3E%3Cpath d='M12 14 L20 2 L28 14Z' fill='%238EA2F2'/%3E%3Cpath d='M4 14 L12 14 L20 2Z' fill='%234A63E0'/%3E%3Cpath d='M12 14 L28 14 L20 38Z' fill='%233B55D6'/%3E%3C/svg%3E") center/contain no-repeat;animation:ldGem 1.2s linear infinite,ldOut .4s ease .45s forwards}
+main{animation:pageIn .7s ease .45s both}
+.page-loader{position:fixed;inset:0;z-index:300;background:var(--paper);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;opacity:0;visibility:hidden;transition:opacity .28s ease,visibility .28s}
+.page-loader.on{opacity:1;visibility:visible}
+.page-loader .ld-gem{width:46px;height:46px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cpath d='M20 2 L36 14 L20 38 L4 14Z' fill='%232437B8'/%3E%3Cpath d='M4 14 L36 14 L20 38Z' fill='%23141E63'/%3E%3Cpath d='M12 14 L20 2 L28 14Z' fill='%238EA2F2'/%3E%3Cpath d='M4 14 L12 14 L20 2Z' fill='%234A63E0'/%3E%3Cpath d='M12 14 L28 14 L20 38Z' fill='%233B55D6'/%3E%3C/svg%3E") center/contain no-repeat;animation:ldGem 1.2s linear infinite;position:relative;left:23px;top:23px}
+.page-loader .ld-word{width:400px;max-width:90vw;height:120px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 120'%3E%3Ctext x='200' y='62' text-anchor='middle' font-family='Palatino Linotype,Palatino,Book Antiqua,Georgia,serif' font-size='30' letter-spacing='7' fill='%2315233A'%3ECELVYR%3C/text%3E%3Ctext x='200' y='90' text-anchor='middle' font-family='Helvetica Neue,Arial,sans-serif' font-size='9' letter-spacing='4.5' fill='%23A57D4A'%3EFINE GEMS %C2%B7 SRI LANKA%3C/text%3E%3C/svg%3E") center/contain no-repeat;margin-top:-22px}
+.page-loader .ld-bar{width:120px;height:1px;background:var(--gold-soft);animation:ldBar 1.1s ease-in-out infinite;margin-top:-30px}
+@media (prefers-reduced-motion:reduce){body::after,.page-loader .ld-gem,.page-loader .ld-bar{animation:ldOut .3s ease .3s forwards}main{animation:none}}
