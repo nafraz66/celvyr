@@ -305,3 +305,9 @@ main{animation:pageIn .7s ease .45s both}
 .page-loader .ld-word{width:400px;max-width:90vw;height:120px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 120'%3E%3Ctext x='200' y='62' text-anchor='middle' font-family='Palatino Linotype,Palatino,Book Antiqua,Georgia,serif' font-size='30' letter-spacing='7' fill='%2315233A'%3ECELVYR%3C/text%3E%3Ctext x='200' y='90' text-anchor='middle' font-family='Helvetica Neue,Arial,sans-serif' font-size='9' letter-spacing='4.5' fill='%23A57D4A'%3EFINE GEMS %C2%B7 SRI LANKA%3C/text%3E%3C/svg%3E") center/contain no-repeat;margin-top:-22px}
 .page-loader .ld-bar{width:120px;height:1px;background:var(--gold-soft);animation:ldBar 1.1s ease-in-out infinite;margin-top:-30px}
 @media (prefers-reduced-motion:reduce){body::after,.page-loader .ld-gem,.page-loader .ld-bar{animation:ldOut .3s ease .3s forwards}main{animation:none}}
+
+/* ---------- Floating WhatsApp ---------- */
+.wa-float{position:fixed;right:22px;bottom:22px;z-index:90;display:flex;align-items:center;gap:10px;background:#1F7A4D;color:#fff;padding:12px 18px 12px 14px;border-radius:999px;box-shadow:0 8px 24px rgba(21,35,58,.22);font-size:13px;font-weight:500;transition:transform .2s,box-shadow .2s}
+.wa-float:hover{transform:translateY(-2px);box-shadow:0 12px 28px rgba(21,35,58,.28)}
+.wa-float svg{width:24px;height:24px;flex-shrink:0}
+@media (max-width:620px){.wa-float{right:14px;bottom:14px;padding:13px}.wa-float span{display:none}}
