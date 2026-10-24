@@ -25,7 +25,8 @@
   const imgUrl = (k) => "/img/" + encodeURIComponent(k);
   const hasImg = (g) => Array.isArray(g.images) && g.images.length > 0;
   const isSold = (g) => g.available === false;
-  const priceHTML = (g) => `${money(g.price)}${g.comparePrice > g.price ? ` <s class="was">${money(g.comparePrice)}</s>` : ""}`;
+  const priceHTML = (g) => (Number(g.price) > 0 ? `${money(g.price)}${g.comparePrice > g.price ? ` <s class="was">${money(g.comparePrice)}</s>` : ""}` : "Price on request");
+  const metaLine = (g, cutWord = true) => [Number(g.carat) > 0 ? `${Number(g.carat).toFixed(2)} ct` : "", g.cut ? `${g.cut}${cutWord ? " cut" : ""}` : ""].filter(Boolean).map(esc).join(" · ");
 
   /* ---------- faceted gem drawing ---------- */
   function rand(seed) { let s = 0; for (const c of seed) s = (s * 31 + c.charCodeAt(0)) >>> 0; return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296); }
@@ -99,7 +100,7 @@
     const fav = getFavs().includes(g.id);
     return `<a class="card" href="gem.html?id=${g.id}">
       <div class="card-img ${hasImg(g) ? "has-photo" : ""}"><span class="tag ${isSold(g) ? "tag-sold" : ""}">${esc(isSold(g) ? "Sold" : g.tag)}</span><button class="heart ${fav ? "on" : ""}" data-fav="${g.id}" aria-label="Save">${fav ? "♥" : "♡"}</button>${hasImg(g) ? `<img src="${imgUrl(g.images[0])}" alt="${esc(g.name)}" loading="lazy">` : gemSVG(g)}</div>
-      <div class="card-meta">${Number(g.carat).toFixed(2)} ct · ${esc(g.cut)} cut</div>
+      <div class="card-meta">${metaLine(g) || "&nbsp;"}</div>
       <h3>${esc(g.name)}</h3>
       <div class="card-foot"><span>${priceHTML(g)}</span><span>Explore</span></div></a>`;
   }
@@ -146,23 +147,25 @@
 
     gem() {
       const g = gem(new URLSearchParams(location.search).get("id")) || GEMS[0];
-      document.title = g.seoTitle || `${g.name} — ${g.carat} ct | Celvyr`;
+      document.title = g.seoTitle || `${g.name}${Number(g.carat) > 0 ? ` — ${g.carat} ct` : ""} | Celvyr`;
       const md = document.querySelector('meta[name="description"]'); if (md) md.setAttribute("content", g.seoDesc || g.line || "");
       $("#crumbName").textContent = g.name;
       $("#gTag").textContent = g.tag;
-      $("#gRef").textContent = `${g.type} / ${g.ref}`;
+      $("#gRef").textContent = [g.type, g.ref].filter(Boolean).join(" / ");
       $("#gName").textContent = g.name;
-      $("#gLine").textContent = g.line;
+      $("#gLine").textContent = g.line || ""; if (!g.line) $("#gLine").style.display = "none";
       $("#gPrice").innerHTML = priceHTML(g);
+      if (!(Number(g.price) > 0)) $(".price small").style.display = "none";
       if (g.description) {
         const d = document.createElement("details"); d.open = true;
         d.innerHTML = `<summary>About this stone</summary>${g.description.split(/\n\s*\n/).map((p) => `<p>${esc(p).replace(/\n/g, "<br>")}</p>`).join("")}`;
         const acc = $(".acc"); acc.insertBefore(d, acc.firstChild);
         const nd = acc.querySelector("details:nth-of-type(2)"); if (nd) nd.open = false;
       }
-      $("#gSpecs").innerHTML = [["Carat weight", g.carat.toFixed(2) + " ct"], ["Shape / cut", g.cutDetail], ["Origin", g.origin], ["Dimensions", g.dims], ["Treatment", g.treatment], ["Lab report", g.lab]]
+      $("#gSpecs").innerHTML = [["Carat weight", Number(g.carat) > 0 ? Number(g.carat).toFixed(2) + " ct" : ""], ["Shape / cut", g.cutDetail], ["Origin", g.origin], ["Dimensions", g.dims], ["Treatment", g.treatment], ["Lab report", g.lab]]
         .filter(([, v]) => v).map(([k, v]) => `<div><dt>${k}</dt><dd>${esc(v)}</dd></div>`).join("");
-      $("#n1").textContent = g.note; $("#n1t").textContent = g.noteText;
+      $("#n1").textContent = g.note || ""; $("#n1t").textContent = g.noteText || "";
+      if (!g.note && !g.noteText) $("#n1").parentElement.style.display = "none";
       const main = $("#gMain");
       if (hasImg(g)) {
         $(".pdp-main").classList.add("has-photo");
@@ -183,6 +186,14 @@
         show(0);
       }
       const inBag = () => getBag().includes(g.id);
+      const vid = g.video ? imgUrl(g.video) : "", vurl = g.videoUrl || "";
+      if (vid || vurl) {
+        const b = document.createElement("button");
+        b.type = "button"; b.className = "video-btn";
+        b.innerHTML = '<span class="play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></svg></span>Watch real video';
+        $("#thumbs").insertAdjacentElement("afterend", b);
+        b.addEventListener("click", () => openVideo(vid, vurl, g.name));
+      }
       const addBtn = $("#addBag");
       if (isSold(g)) {
         $("#gTag").textContent = "Sold";
@@ -206,7 +217,7 @@
         $("#bagSub").textContent = `Your shopping bag · ${items.length} gemstone${items.length === 1 ? "" : "s"}`;
         $("#lines").innerHTML = items.length ? items.map((g) => `
           <div class="line"><div class="line-gem"><a class="line-thumb" href="gem.html?id=${g.id}">${hasImg(g) ? `<img src="${imgUrl(g.images[0])}" alt="">` : gemSVG(g)}</a>
-            <div><h3>${g.name}</h3><div class="small">${g.carat.toFixed(2)} ct · ${g.cut} cut<br>Reference ${g.ref}</div><button class="rm" data-rm="${g.id}">Remove</button></div></div>
+            <div><h3>${g.name}</h3><div class="small">${metaLine(g)}${g.ref ? `<br>Reference ${esc(g.ref)}` : ""}</div><button class="rm" data-rm="${g.id}">Remove</button></div></div>
             <div><span class="qty">1 · one of a kind</span></div><div>${money(g.price)}</div></div>`).join("")
           : `<div class="line" style="display:block"><p class="lead">Your bag is waiting for its first stone.</p><p style="margin-top:18px"><a class="btn btn-dark" href="gemstones.html">Find your colour</a></p></div>`;
         $$("[data-rm]").forEach((b) => b.addEventListener("click", () => { setBag(getBag().filter((x) => x !== b.dataset.rm)); draw(); }));
@@ -220,7 +231,7 @@
 
     checkout() {
       const items = getBag().map(gem), total = items.reduce((s, g) => s + g.price, 0);
-      $("#coItems").innerHTML = items.map((g) => `<div class="mini"><div class="line-thumb">${hasImg(g) ? `<img src="${imgUrl(g.images[0])}" alt="">` : gemSVG(g)}</div><div><h4>${g.name}</h4><div class="small muted" style="font-size:12px">${g.carat.toFixed(2)} ct · ${g.cut} · Qty 1</div></div></div>`).join("") || `<p class="muted" style="margin-bottom:20px">Your bag is empty. <a class="link-under" href="gemstones.html">Browse gemstones</a></p>`;
+      $("#coItems").innerHTML = items.map((g) => `<div class="mini"><div class="line-thumb">${hasImg(g) ? `<img src="${imgUrl(g.images[0])}" alt="">` : gemSVG(g)}</div><div><h4>${g.name}</h4><div class="small muted" style="font-size:12px">${[metaLine(g, false), "Qty 1"].filter(Boolean).join(" · ")}</div></div></div>`).join("") || `<p class="muted" style="margin-bottom:20px">Your bag is empty. <a class="link-under" href="gemstones.html">Browse gemstones</a></p>`;
       $("#coSub").textContent = money(total); $("#coTotal").textContent = money(total);
       const bank = $("#bankBox");
       if (bank && C.bankAccountNumber) {
@@ -245,7 +256,7 @@
         e.preventDefault();
         if (!items.length) return toast("Add a gemstone to your bag first");
         const d = Object.fromEntries(new FormData(form));
-        const text = `Hello Celvyr — I'd like to reserve:\n${items.map((g) => `• ${g.name} (${g.ref}) — ${g.carat} ct — LKR ${g.price.toLocaleString("en-US")}`).join("\n")}\nTotal: LKR ${total.toLocaleString("en-US")}\n\nName: ${d.first} ${d.last}\nEmail: ${d.email}\nPhone: ${d.phone}\nAddress: ${d.street}${d.apt ? ", " + d.apt : ""}, ${d.city} ${d.postal}, ${d.country}\nPayment preference: ${d.pay}${d.pay === "Bank transfer" && C.bankAccountNumber ? ` (to ${C.bankName}, ${C.bankAccountNumber})` : ""}\n${store.get("celvyr_note", "") ? "Note: " + store.get("celvyr_note", "") : ""}`;
+        const text = `Hello Celvyr — I'd like to reserve:\n${items.map((g) => `• ${g.name}${g.ref ? ` (${g.ref})` : ""}${Number(g.carat) > 0 ? ` — ${g.carat} ct` : ""} — ${Number(g.price) > 0 ? "LKR " + Number(g.price).toLocaleString("en-US") : "price on request"}`).join("\n")}\nTotal: LKR ${total.toLocaleString("en-US")}\n\nName: ${d.first} ${d.last}\nEmail: ${d.email}\nPhone: ${d.phone}\nAddress: ${d.street}${d.apt ? ", " + d.apt : ""}, ${d.city} ${d.postal}, ${d.country}\nPayment preference: ${d.pay}${d.pay === "Bank transfer" && C.bankAccountNumber ? ` (to ${C.bankName}, ${C.bankAccountNumber})` : ""}\n${store.get("celvyr_note", "") ? "Note: " + store.get("celvyr_note", "") : ""}`;
         const via = e.submitter && e.submitter.dataset.via;
         window.open(via === "email" ? mailLink("Gemstone reservation", text) : waLink(text), "_blank");
         toast("Opening your message — just press send");
@@ -254,7 +265,7 @@
 
     contact() {
       const q = new URLSearchParams(location.search), g = gem(q.get("gem"));
-      if (g) { $("#cInterest").value = "A specific gemstone"; $("#cMsg").value = `I'd love to know more about the ${g.name} (${g.ref}, ${g.carat} ct).`; }
+      if (g) { $("#cInterest").value = "A specific gemstone"; $("#cMsg").value = `I'd love to know more about the ${g.name}${[g.ref, Number(g.carat) > 0 ? g.carat + " ct" : ""].filter(Boolean).length ? ` (${[g.ref, Number(g.carat) > 0 ? g.carat + " ct" : ""].filter(Boolean).join(", ")})` : ""}.`; }
       if (q.get("topic") === "Delivery") $("#cInterest").value = "Delivery & shipping";
       if (q.get("topic") === "Guidance") $("#cInterest").value = "Gemstone guidance";
       $("#waDirect").href = waLink("Hello Celvyr, I have a question about your gemstones.");
@@ -270,6 +281,25 @@
       });
     },
   };
+
+  /* ---------- video player ---------- */
+  function youTubeId(u) { const m = String(u).match(/(?:youtu\.be\/|v=|shorts\/|embed\/)([\w-]{11})/); return m ? m[1] : null; }
+  function openVideo(src, url, name) {
+    const yt = !src && youTubeId(url);
+    if (!src && !yt) { window.open(url, "_blank", "noopener"); return; }
+    const m = document.createElement("div");
+    m.className = "video-modal";
+    m.innerHTML = `<div class="vm-inner"><button class="vm-close" aria-label="Close video">✕</button>${src
+      ? `<video src="${src}" controls autoplay playsinline preload="metadata"></video>`
+      : `<div class="vm-yt"><iframe src="https://www.youtube-nocookie.com/embed/${yt}?autoplay=1&rel=0&playsinline=1" title="${esc(name)} video" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe></div>`}
+      <p class="vm-cap">${esc(name)} · filmed in natural light, unedited</p></div>`;
+    const close = () => { m.remove(); document.body.style.overflow = ""; document.removeEventListener("keydown", onKey); };
+    const onKey = (e) => { if (e.key === "Escape") close(); };
+    m.addEventListener("click", (e) => { if (e.target === m || e.target.closest(".vm-close")) close(); });
+    document.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    document.body.appendChild(m);
+  }
 
   /* ---------- live data from the admin ---------- */
   function applyContent(content) {

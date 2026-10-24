@@ -209,10 +209,11 @@
   function viewProduct(id) {
     const isNew = id === "new";
     const orig = isNew
-      ? { name: "", status: "draft", available: true, featured: false, type: "Sapphire", shade: "Blue", ref: "", carat: "", cut: "Oval", cutDetail: "", price: "", comparePrice: "", dims: "", origin: "Sri Lanka", treatment: "Disclosed on request", lab: "Available on request", tag: "Loose gemstone", line: "", description: "", note: "", noteText: "", colours: ["#141E63", "#2437B8", "#4A63E0", "#8EA2F2"], images: [], seoTitle: "", seoDesc: "" }
+      ? { name: "", status: "draft", available: true, featured: false, type: "Sapphire", shade: "Blue", ref: "", carat: "", cut: "Oval", cutDetail: "", price: "", comparePrice: "", dims: "", origin: "Sri Lanka", treatment: "Disclosed on request", lab: "Available on request", tag: "Loose gemstone", line: "", description: "", note: "", noteText: "", colours: ["#141E63", "#2437B8", "#4A63E0", "#8EA2F2"], images: [], video: "", videoUrl: "", seoTitle: "", seoDesc: "" }
       : state.products.find((p) => p.id === id);
     if (!orig) { location.hash = "#/products"; return; }
     let p = JSON.parse(JSON.stringify(orig));
+    p.video = p.video || ""; p.videoUrl = p.videoUrl || "";
     const opt = (list, v) => [...new Set([v, ...list].filter(Boolean))].map((x) => `<option ${x === v ? "selected" : ""}>${esc(x)}</option>`).join("");
     const inp = (k, label, type = "text", extra = "") => `<div class="f"><label for="f_${k}">${label}</label><input type="${type}" id="f_${k}" data-k="${k}" value="${esc(p[k])}" ${extra}></div>`;
 
@@ -232,6 +233,13 @@
             <div class="media" id="media"></div>
             <input type="file" id="file" accept="image/*" multiple hidden>
             <div class="hint">Drag photos to reorder. The first photo is the cover. Photos are resized automatically for fast loading. With no photos, the gem drawing below is shown.</div>
+          </div>
+          <div class="card">
+            <h2>Video</h2>
+            <div id="videoBox"></div>
+            <input type="file" id="vfile" accept="video/mp4,video/quicktime,video/webm,video/x-m4v,.mp4,.mov" hidden>
+            <div class="f" style="margin-top:12px"><label for="f_videoUrl">Or paste a YouTube link</label><input type="text" id="f_videoUrl" data-k="videoUrl" value="${esc(p.videoUrl)}" placeholder="https://youtu.be/…"></div>
+            <div class="hint">Shows a "Watch real video" button under the photos. Upload a short clip (MP4 or MOV, up to 24 MB, about 20–40 seconds from a phone). For longer videos, upload to YouTube and paste the link.</div>
           </div>
           <div class="card">
             <h2>Pricing</h2>
@@ -346,6 +354,45 @@
     file.onchange = () => { addFiles(file.files); file.value = ""; };
     drawMedia();
 
+    // video
+    const vbox = $("#videoBox"), vfile = $("#vfile");
+    let vPct = -1;
+    const drawVideo = () => {
+      if (vPct >= 0) { vbox.innerHTML = `<div class="drop big"><b>Uploading video… ${vPct}%</b><span>Keep this page open</span></div>`; return; }
+      vbox.innerHTML = p.video
+        ? `<video src="/img/${esc(p.video)}" controls playsinline preload="metadata" style="width:100%;max-height:320px;border-radius:8px;background:#000"></video><div style="margin-top:8px;display:flex;gap:8px"><button class="btn" id="vReplace">Replace video</button><button class="btn danger" id="vRemove">Remove</button></div>`
+        : `<div class="drop big" id="vDrop">${I.upload}<b>Add video</b><span>MP4 or MOV, up to 24 MB</span></div>`;
+      const pick = () => vfile.click();
+      const d = $("#vDrop"); if (d) {
+        d.onclick = pick;
+        d.addEventListener("dragover", (e) => { e.preventDefault(); d.classList.add("over"); });
+        d.addEventListener("dragleave", () => d.classList.remove("over"));
+        d.addEventListener("drop", (e) => { e.preventDefault(); d.classList.remove("over"); if (e.dataTransfer.files[0]) uploadVideo(e.dataTransfer.files[0]); });
+      }
+      const r = $("#vReplace"); if (r) r.onclick = pick;
+      const x = $("#vRemove"); if (x) x.onclick = () => { p.video = ""; drawVideo(); check(); };
+    };
+    function uploadVideo(f) {
+      if (!/^video\//.test(f.type) && !/\.(mp4|mov|m4v|webm)$/i.test(f.name)) { toast("Please choose a video file", true); return; }
+      if (f.size > 24 * 1024 * 1024) { toast("Video too large (max 24 MB). Trim it, or use a YouTube link.", true); return; }
+      const type = f.type || (/\.mov$/i.test(f.name) ? "video/quicktime" : "video/mp4");
+      vPct = 0; drawVideo(); pending++;
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", "/api/admin/upload");
+      xhr.setRequestHeader("content-type", type);
+      xhr.upload.onprogress = (e) => { if (e.lengthComputable) { vPct = Math.round((e.loaded / e.total) * 100); drawVideo(); } };
+      xhr.onload = () => {
+        pending--; vPct = -1;
+        let d = {}; try { d = JSON.parse(xhr.responseText); } catch {}
+        if (xhr.status === 200 && d.key) { p.video = d.key; toast("Video uploaded"); } else toast(d.error || "Video upload failed", true);
+        drawVideo(); check();
+      };
+      xhr.onerror = () => { pending--; vPct = -1; drawVideo(); toast("Video upload failed — check your connection", true); };
+      xhr.send(f);
+    }
+    vfile.onchange = () => { if (vfile.files[0]) uploadVideo(vfile.files[0]); vfile.value = ""; };
+    drawVideo();
+
     async function save() {
       if (!String(p.name).trim()) { toast("Add a title first", true); $("#f_name").focus(); return; }
       if (pending) { toast("Wait for photos to finish uploading", true); return; }
@@ -359,6 +406,7 @@
         } else {
           const r = await api("/api/admin/products/" + encodeURIComponent(orig.id), { method: "PUT", body: p });
           const removed = (orig.images || []).filter((k) => !r.product.images.includes(k));
+          if (orig.video && orig.video !== r.product.video) removed.push(orig.video);
           await Promise.all(removed.map((k) => api("/api/admin/img/" + k, { method: "DELETE" }).catch(() => {})));
           const i = state.products.findIndex((x) => x.id === orig.id); state.products[i] = r.product;
           setDirty(false); toast("Product saved"); viewProduct(orig.id);
@@ -368,6 +416,7 @@
     }
     function discard() {
       const added = p.images.filter((k) => !(orig.images || []).includes(k));
+      if (p.video && p.video !== orig.video) added.push(p.video);
       added.forEach((k) => api("/api/admin/img/" + k, { method: "DELETE" }).catch(() => {}));
       setDirty(false);
       isNew ? (location.hash = "#/products") : viewProduct(orig.id);
