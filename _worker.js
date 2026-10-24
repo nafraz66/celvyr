@@ -205,6 +205,11 @@ async function api(req, env, url) {
       usdRate: Number(s.usdRate) > 0 ? Number(s.usdRate) : 300,
       announcement: String(s.announcement || "").slice(0, 160),
       footerTagline: String(s.footerTagline || "").slice(0, 300),
+      bankAccountName: String(s.bankAccountName || "").slice(0, 80),
+      bankAccountNumber: String(s.bankAccountNumber || "").slice(0, 40),
+      bankName: String(s.bankName || "").slice(0, 80),
+      bankBranch: String(s.bankBranch || "").slice(0, 80),
+      paymentNote: String(s.paymentNote || "").slice(0, 400),
     };
     await env.DATA.put("settings", JSON.stringify(clean));
     return json({ ok: true, settings: clean });
