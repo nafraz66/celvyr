@@ -397,3 +397,19 @@ body::after{width:66px;height:84px;top:calc(50% - 38px);background:url(logo-embl
 .page-loader .ld-bar{margin-top:0}
 @media (max-width:980px){.header .wrap{height:76px}.logo img{height:48px}}
 @media (max-width:620px){.header .wrap{height:68px;gap:8px}.logo img{height:42px}.head-right{gap:6px}}
+
+/* ---------- v10: real photos, compare price, sold ---------- */
+.card-img.has-photo{background:#e9e7e1}
+.card-img.has-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .6s ease}
+.card:hover .card-img.has-photo img{transform:scale(1.04)}
+.card-img .tag,.card-img .heart{z-index:2}
+.tag-sold{background:var(--navy)!important;color:#fff}
+s.was{color:var(--muted);font-size:.85em;margin-left:6px}
+.price s.was{font-size:16px}
+.pdp-main.has-photo{overflow:hidden}
+.pdp-main.has-photo #gMain{position:absolute;inset:0}
+.pdp-main.has-photo #gMain img{width:100%;height:100%;object-fit:cover}
+.pdp-main .tag{z-index:2}
+.thumb.photo-thumb{padding:0;overflow:hidden}
+.thumb.photo-thumb img{width:100%;height:100%;object-fit:cover}
+.line-thumb img{width:100%;height:100%;object-fit:cover}

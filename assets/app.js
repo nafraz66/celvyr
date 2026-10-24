@@ -1,5 +1,5 @@
 /* Celvyr — shared site code. Settings and gems live in catalogue.js. */
-(function () {
+(async function () {
   const C = window.CELVYR, GEMS = window.GEMS;
   const $ = (s, el = document) => el.querySelector(s);
   const $$ = (s, el = document) => [...el.querySelectorAll(s)];
@@ -10,7 +10,7 @@
     get(k, d) { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } },
     set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
   };
-  const getBag = () => store.get("celvyr_bag", []).filter((id) => GEMS.some((g) => g.id === id));
+  const getBag = () => store.get("celvyr_bag", []).filter((id) => GEMS.some((g) => g.id === id && g.available !== false));
   const setBag = (b) => { store.set("celvyr_bag", b); updateBagCount(); };
   const getFavs = () => store.get("celvyr_favs", []);
   const getCur = () => store.get("celvyr_cur", "LKR");
@@ -21,6 +21,11 @@
     return "LKR " + lkr.toLocaleString("en-US");
   }
   const gem = (id) => GEMS.find((g) => g.id === id);
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const imgUrl = (k) => "/img/" + encodeURIComponent(k);
+  const hasImg = (g) => Array.isArray(g.images) && g.images.length > 0;
+  const isSold = (g) => g.available === false;
+  const priceHTML = (g) => `${money(g.price)}${g.comparePrice > g.price ? ` <s class="was">${money(g.comparePrice)}</s>` : ""}`;
 
   /* ---------- faceted gem drawing ---------- */
   function rand(seed) { let s = 0; for (const c of seed) s = (s * 31 + c.charCodeAt(0)) >>> 0; return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296); }
@@ -61,7 +66,7 @@
   const navItems = [["index.html", "Home", "home"], ["gemstones.html", "Gemstones", "gemstones"], ["story.html", "Our story", "story"], ["contact.html", "Contact", "contact"]];
   function header() {
     const cur = getCur();
-    return `<div class="topbar">A gemstone story, rooted in Sri Lanka</div>
+    return `<div class="topbar">${esc(C.announcement || "A gemstone story, rooted in Sri Lanka")}</div>
     <header class="header"><div class="wrap">
       <div class="head-left">
         <button class="burger" aria-label="Menu"><span></span></button>
@@ -78,7 +83,7 @@
     return `<footer class="footer"><div class="wrap">
       <div class="foot-grid">
         <div><a class="logo foot-logo" href="index.html"><img src="assets/logo-wordmark.webp" alt="Celvyr Gems" width="760" height="253" loading="lazy"></a>
-          <p>Extraordinary colour. Enduring character.<br>A personal journey to your next gemstone.</p></div>
+          <p>${esc(C.footerTagline || "Extraordinary colour. Enduring character.\nA personal journey to your next gemstone.").replace(/\n/g, "<br>")}</p></div>
         <div><h5>Explore</h5><ul><li><a href="gemstones.html">All gemstones</a></li><li><a href="gem.html?id=ceylon-blue-sapphire">The featured sapphire</a></li><li><a href="story.html">Our story</a></li></ul></div>
         <div><h5>Let us help</h5><ul><li><a href="contact.html">Contact Celvyr</a></li><li><a href="contact.html?topic=Delivery">Delivery enquiries</a></li><li><a href="contact.html?topic=Guidance">Gemstone guidance</a></li></ul></div>
         <div><h5>A more personal search</h5><p style="margin-top:0">Have a particular colour or cut in mind?</p><ul style="margin-top:12px"><li><a href="contact.html" class="arrow">Speak with Celvyr</a></li></ul></div>
@@ -93,10 +98,10 @@
   function card(g) {
     const fav = getFavs().includes(g.id);
     return `<a class="card" href="gem.html?id=${g.id}">
-      <div class="card-img"><span class="tag">${g.tag}</span><button class="heart ${fav ? "on" : ""}" data-fav="${g.id}" aria-label="Save">${fav ? "♥" : "♡"}</button>${gemSVG(g)}</div>
-      <div class="card-meta">${g.carat.toFixed(2)} ct · ${g.cut} cut</div>
-      <h3>${g.name}</h3>
-      <div class="card-foot"><span>${money(g.price)}</span><span>Explore</span></div></a>`;
+      <div class="card-img ${hasImg(g) ? "has-photo" : ""}"><span class="tag ${isSold(g) ? "tag-sold" : ""}">${esc(isSold(g) ? "Sold" : g.tag)}</span><button class="heart ${fav ? "on" : ""}" data-fav="${g.id}" aria-label="Save">${fav ? "♥" : "♡"}</button>${hasImg(g) ? `<img src="${imgUrl(g.images[0])}" alt="${esc(g.name)}" loading="lazy">` : gemSVG(g)}</div>
+      <div class="card-meta">${Number(g.carat).toFixed(2)} ct · ${esc(g.cut)} cut</div>
+      <h3>${esc(g.name)}</h3>
+      <div class="card-foot"><span>${priceHTML(g)}</span><span>Explore</span></div></a>`;
   }
   function bindHearts(root = document) {
     $$("[data-fav]", root).forEach((b) => b.addEventListener("click", (e) => {
@@ -116,7 +121,7 @@
 
   /* ---------- pages ---------- */
   const pages = {
-    home() { renderGrid($("#featured"), GEMS.slice(0, 4)); },
+    home() { const f = GEMS.filter((g) => g.featured && !isSold(g)); renderGrid($("#featured"), (f.length ? f : GEMS).slice(0, 4)); },
 
     gemstones() {
       const state = { type: "All", shade: "", cut: "", price: "", sort: "featured" };
@@ -126,6 +131,7 @@
         let list = GEMS.filter((g) =>
           (state.type === "All" || g.type === state.type) && (!state.shade || g.shade === state.shade) && (!state.cut || g.cut === state.cut) &&
           (!state.price || (state.price === "lo" ? g.price < 250000 : state.price === "mid" ? g.price >= 250000 && g.price <= 400000 : g.price > 400000)));
+        list = [...list.filter((g) => !isSold(g)), ...list.filter(isSold)];
         if (state.sort === "lo") list = [...list].sort((a, b) => a.price - b.price);
         if (state.sort === "hi") list = [...list].sort((a, b) => b.price - a.price);
         if (state.sort === "ct") list = [...list].sort((a, b) => b.carat - a.carat);
@@ -140,32 +146,57 @@
 
     gem() {
       const g = gem(new URLSearchParams(location.search).get("id")) || GEMS[0];
-      document.title = `${g.name} — ${g.carat} ct | Celvyr`;
+      document.title = g.seoTitle || `${g.name} — ${g.carat} ct | Celvyr`;
+      const md = document.querySelector('meta[name="description"]'); if (md) md.setAttribute("content", g.seoDesc || g.line || "");
       $("#crumbName").textContent = g.name;
       $("#gTag").textContent = g.tag;
       $("#gRef").textContent = `${g.type} / ${g.ref}`;
       $("#gName").textContent = g.name;
       $("#gLine").textContent = g.line;
-      $("#gPrice").textContent = money(g.price);
+      $("#gPrice").innerHTML = priceHTML(g);
+      if (g.description) {
+        const d = document.createElement("details"); d.open = true;
+        d.innerHTML = `<summary>About this stone</summary>${g.description.split(/\n\s*\n/).map((p) => `<p>${esc(p).replace(/\n/g, "<br>")}</p>`).join("")}`;
+        const acc = $(".acc"); acc.insertBefore(d, acc.firstChild);
+        const nd = acc.querySelector("details:nth-of-type(2)"); if (nd) nd.open = false;
+      }
       $("#gSpecs").innerHTML = [["Carat weight", g.carat.toFixed(2) + " ct"], ["Shape / cut", g.cutDetail], ["Origin", g.origin], ["Dimensions", g.dims], ["Treatment", g.treatment], ["Lab report", g.lab]]
-        .map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join("");
+        .filter(([, v]) => v).map(([k, v]) => `<div><dt>${k}</dt><dd>${esc(v)}</dd></div>`).join("");
       $("#n1").textContent = g.note; $("#n1t").textContent = g.noteText;
       const main = $("#gMain");
-      const show = (v) => { main.innerHTML = gemSVG(g, v); $$(".thumb").forEach((t, i) => t.classList.toggle("on", i === v)); };
-      $("#thumbs").innerHTML = `<button class="thumb on">${gemSVG(g, 0)}</button><button class="thumb">${gemSVG(g, 1)}</button><button class="thumb">Turn it</button>`;
-      $$(".thumb").forEach((t, i) => t.addEventListener("click", () => {
-        if (i < 2) return show(i);
-        show(0); let a = 0; const svg = $("svg", main); $$(".thumb").forEach((x, j) => x.classList.toggle("on", j === 2));
-        const spin = () => { a += 6; svg.style.transform = `rotate(${a}deg)`; if (a < 360) requestAnimationFrame(spin); else svg.style.transform = ""; }; spin();
-      }));
-      show(0);
+      if (hasImg(g)) {
+        $(".pdp-main").classList.add("has-photo");
+        $(".note").textContent = "Photographed in natural light · Ask us for a video";
+        const show = (i) => { main.innerHTML = `<img src="${imgUrl(g.images[i])}" alt="${esc(g.name)} photo ${i + 1}">`; $$(".thumb").forEach((t, j) => t.classList.toggle("on", j === i)); };
+        $("#thumbs").innerHTML = g.images.map((k, i) => `<button class="thumb photo-thumb ${i ? "" : "on"}"><img src="${imgUrl(k)}" alt="" loading="lazy"></button>`).join("");
+        $$(".thumb").forEach((t, i) => t.addEventListener("click", () => show(i)));
+        if (g.images.length < 2) $("#thumbs").style.display = "none";
+        show(0);
+      } else {
+        const show = (v) => { main.innerHTML = gemSVG(g, v); $$(".thumb").forEach((t, i) => t.classList.toggle("on", i === v)); };
+        $("#thumbs").innerHTML = `<button class="thumb on">${gemSVG(g, 0)}</button><button class="thumb">${gemSVG(g, 1)}</button><button class="thumb">Turn it</button>`;
+        $$(".thumb").forEach((t, i) => t.addEventListener("click", () => {
+          if (i < 2) return show(i);
+          show(0); let a = 0; const svg = $("svg", main); $$(".thumb").forEach((x, j) => x.classList.toggle("on", j === 2));
+          const spin = () => { a += 6; svg.style.transform = `rotate(${a}deg)`; if (a < 360) requestAnimationFrame(spin); else svg.style.transform = ""; }; spin();
+        }));
+        show(0);
+      }
       const inBag = () => getBag().includes(g.id);
       const addBtn = $("#addBag");
+      if (isSold(g)) {
+        $("#gTag").textContent = "Sold";
+        addBtn.textContent = "Sold — ask us for a similar stone";
+        addBtn.addEventListener("click", () => (location.href = `contact.html?gem=${g.id}`));
+        $("#askGem").href = `contact.html?gem=${g.id}`;
+        renderGrid($("#others"), GEMS.filter((x) => x.id !== g.id && !isSold(x)).slice(0, 3));
+        return;
+      }
       const sync = () => { addBtn.textContent = inBag() ? "In your bag — view bag" : "Add to bag"; };
       addBtn.addEventListener("click", () => { if (inBag()) return (location.href = "bag.html"); setBag([...getBag(), g.id]); sync(); toast(`${g.name} is in your bag`); });
       sync();
       $("#askGem").href = `contact.html?gem=${g.id}`;
-      renderGrid($("#others"), GEMS.filter((x) => x.id !== g.id).slice(0, 3));
+      renderGrid($("#others"), GEMS.filter((x) => x.id !== g.id && !isSold(x)).slice(0, 3));
     },
 
     bag() {
@@ -174,7 +205,7 @@
         const total = items.reduce((s, g) => s + g.price, 0);
         $("#bagSub").textContent = `Your shopping bag · ${items.length} gemstone${items.length === 1 ? "" : "s"}`;
         $("#lines").innerHTML = items.length ? items.map((g) => `
-          <div class="line"><div class="line-gem"><a class="line-thumb" href="gem.html?id=${g.id}">${gemSVG(g)}</a>
+          <div class="line"><div class="line-gem"><a class="line-thumb" href="gem.html?id=${g.id}">${hasImg(g) ? `<img src="${imgUrl(g.images[0])}" alt="">` : gemSVG(g)}</a>
             <div><h3>${g.name}</h3><div class="small">${g.carat.toFixed(2)} ct · ${g.cut} cut<br>Reference ${g.ref}</div><button class="rm" data-rm="${g.id}">Remove</button></div></div>
             <div><span class="qty">1 · one of a kind</span></div><div>${money(g.price)}</div></div>`).join("")
           : `<div class="line" style="display:block"><p class="lead">Your bag is waiting for its first stone.</p><p style="margin-top:18px"><a class="btn btn-dark" href="gemstones.html">Find your colour</a></p></div>`;
@@ -184,12 +215,12 @@
       };
       const note = $("#bagNote"); note.value = store.get("celvyr_note", ""); note.addEventListener("input", () => store.set("celvyr_note", note.value));
       draw();
-      renderGrid($("#more"), GEMS.slice(0, 3));
+      renderGrid($("#more"), GEMS.filter((x) => !isSold(x)).slice(0, 3));
     },
 
     checkout() {
       const items = getBag().map(gem), total = items.reduce((s, g) => s + g.price, 0);
-      $("#coItems").innerHTML = items.map((g) => `<div class="mini"><div class="line-thumb">${gemSVG(g)}</div><div><h4>${g.name}</h4><div class="small muted" style="font-size:12px">${g.carat.toFixed(2)} ct · ${g.cut} · Qty 1</div></div></div>`).join("") || `<p class="muted" style="margin-bottom:20px">Your bag is empty. <a class="link-under" href="gemstones.html">Browse gemstones</a></p>`;
+      $("#coItems").innerHTML = items.map((g) => `<div class="mini"><div class="line-thumb">${hasImg(g) ? `<img src="${imgUrl(g.images[0])}" alt="">` : gemSVG(g)}</div><div><h4>${g.name}</h4><div class="small muted" style="font-size:12px">${g.carat.toFixed(2)} ct · ${g.cut} · Qty 1</div></div></div>`).join("") || `<p class="muted" style="margin-bottom:20px">Your bag is empty. <a class="link-under" href="gemstones.html">Browse gemstones</a></p>`;
       $("#coSub").textContent = money(total); $("#coTotal").textContent = money(total);
       const form = $("#coForm");
       form.addEventListener("submit", (e) => {
@@ -222,7 +253,26 @@
     },
   };
 
+  /* ---------- live data from the admin ---------- */
+  function applyContent(content) {
+    if (!content) return;
+    $$("[data-c]").forEach((el) => { const v = content[el.dataset.c]; if (typeof v === "string") el.innerHTML = esc(v).replace(/\n/g, "<br>"); });
+    $$("[data-ci]").forEach((el) => { const v = content[el.dataset.ci]; if (typeof v === "string" && v) { el.removeAttribute("srcset"); el.src = v; } });
+  }
+  async function loadStore() {
+    try {
+      const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 2500);
+      const r = await fetch("/api/store", { signal: ctl.signal }); clearTimeout(t);
+      if (!r.ok) return;
+      const d = await r.json();
+      if (Array.isArray(d.products)) { GEMS.length = 0; d.products.forEach((p) => GEMS.push(p)); }
+      if (d.settings) Object.entries(d.settings).forEach(([k, v]) => { if (v !== "" && v != null) C[k] = v; });
+      applyContent(d.content);
+    } catch {}
+  }
+
   /* ---------- boot ---------- */
+  await loadStore();
   $("#site-header").outerHTML = header();
   $("#site-footer").outerHTML = footer();
   updateBagCount();
