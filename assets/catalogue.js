@@ -6,7 +6,7 @@
 
 window.CELVYR = {
   // Your WhatsApp number: country code + number, no "+" or spaces. e.g. 94771234567
-  whatsapp: "94778983096",
+  whatsapp: "94728993096",
   // Where enquiries and reservations go
   email: "hello@celvyr.com",
   // Rough rate used for the USD view (1 USD = this many LKR)
