@@ -92,6 +92,8 @@ function cleanProduct(p) {
     noteText: str(p.noteText, 400),
     colours: Array.isArray(p.colours) && p.colours.length === 4 ? p.colours.map((c) => (/^#[0-9a-f]{6}$/i.test(c) ? c : "#2437B8")) : ["#141E63", "#2437B8", "#4A63E0", "#8EA2F2"],
     images: Array.isArray(p.images) ? p.images.filter((k) => /^[a-z0-9-]+$/i.test(k)).slice(0, 12) : [],
+    video: /^[a-z0-9-]+$/i.test(p.video || "") ? p.video : "",
+    videoUrl: /^https:\/\/[^\s"'<>]+$/i.test(p.videoUrl || "") ? String(p.videoUrl).slice(0, 300) : "",
     seoTitle: str(p.seoTitle, 120),
     seoDesc: str(p.seoDesc, 320),
     updatedAt: Date.now(),
@@ -192,7 +194,7 @@ async function api(req, env, url) {
     if (method === "DELETE") {
       const [gone] = list.splice(idx, 1);
       await env.DATA.put("products", JSON.stringify(list));
-      await Promise.all((gone.images || []).map((k) => env.DATA.delete("img:" + k)));
+      await Promise.all([...(gone.images || []), ...(gone.video ? [gone.video] : [])].map((k) => env.DATA.delete("img:" + k)));
       return json({ ok: true });
     }
   }
@@ -227,10 +229,12 @@ async function api(req, env, url) {
   }
 
   if (path === "/api/admin/upload" && method === "POST") {
-    const type = req.headers.get("content-type") || "";
-    if (!/^image\/(jpeg|png|webp|avif|gif)$/.test(type)) return bad("Only images please");
+    const type = (req.headers.get("content-type") || "").split(";")[0].trim();
+    const isVideo = /^video\/(mp4|quicktime|webm|x-m4v)$/.test(type);
+    if (!isVideo && !/^image\/(jpeg|png|webp|avif|gif)$/.test(type)) return bad("Only photos or videos (MP4, MOV, WebM) please");
     const buf = await req.arrayBuffer();
-    if (buf.byteLength > 8 * 1024 * 1024) return bad("Image too large (max 8 MB)");
+    const max = isVideo ? 24 : 8;
+    if (buf.byteLength > max * 1024 * 1024) return bad(isVideo ? "Video too large (max 24 MB). Try a shorter clip, or paste a YouTube link instead." : "Image too large (max 8 MB)");
     const key = Date.now().toString(36) + "-" + randHex(4);
     await env.DATA.put("img:" + key, buf, { metadata: { type } });
     return json({ ok: true, key, url: "/img/" + key });
@@ -265,9 +269,20 @@ export default {
         if (!/^[a-z0-9-]+$/i.test(key) || !env.DATA) return new Response("Not found", { status: 404 });
         const { value, metadata } = await env.DATA.getWithMetadata("img:" + key, "arrayBuffer");
         if (!value) return new Response("Not found", { status: 404 });
-        return new Response(value, {
-          headers: { "content-type": metadata?.type || "image/jpeg", "cache-control": "public, max-age=31536000, immutable" },
-        });
+        const type = metadata?.type || "image/jpeg";
+        const size = value.byteLength;
+        const base = { "content-type": type, "cache-control": "public, max-age=31536000, immutable", "accept-ranges": "bytes" };
+        const range = req.headers.get("range");
+        const m = range && range.match(/bytes=(\d*)-(\d*)/);
+        if (m) { // videos on iPhone need byte ranges
+          let start = m[1] === "" ? Math.max(0, size - Number(m[2])) : Number(m[1]);
+          let end = m[1] !== "" && m[2] !== "" ? Math.min(Number(m[2]), size - 1) : size - 1;
+          if (start >= size || start > end) return new Response(null, { status: 416, headers: { "content-range": `bytes */${size}` } });
+          return new Response(req.method === "HEAD" ? null : value.slice(start, end + 1), {
+            status: 206, headers: { ...base, "content-range": `bytes ${start}-${end}/${size}`, "content-length": String(end - start + 1) },
+          });
+        }
+        return new Response(req.method === "HEAD" ? null : value, { headers: { ...base, "content-length": String(size) } });
       }
       if (url.pathname.startsWith("/api/")) {
         if (!env.DATA) return bad("Storage not connected yet", 503);
