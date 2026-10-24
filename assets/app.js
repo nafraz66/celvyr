@@ -222,12 +222,30 @@
       const items = getBag().map(gem), total = items.reduce((s, g) => s + g.price, 0);
       $("#coItems").innerHTML = items.map((g) => `<div class="mini"><div class="line-thumb">${hasImg(g) ? `<img src="${imgUrl(g.images[0])}" alt="">` : gemSVG(g)}</div><div><h4>${g.name}</h4><div class="small muted" style="font-size:12px">${g.carat.toFixed(2)} ct · ${g.cut} · Qty 1</div></div></div>`).join("") || `<p class="muted" style="margin-bottom:20px">Your bag is empty. <a class="link-under" href="gemstones.html">Browse gemstones</a></p>`;
       $("#coSub").textContent = money(total); $("#coTotal").textContent = money(total);
+      const bank = $("#bankBox");
+      if (bank && C.bankAccountNumber) {
+        bank.innerHTML = `<div class="bank-head">Bank transfer details</div>
+          <dl>
+            <div><dt>Account name</dt><dd>${esc(C.bankAccountName)}</dd></div>
+            <div><dt>Account number</dt><dd class="acc-no">${esc(C.bankAccountNumber)} <button type="button" class="copy" id="copyAcc">Copy</button></dd></div>
+            <div><dt>Bank</dt><dd>${esc(C.bankName)}</dd></div>
+            <div><dt>Branch</dt><dd>${esc(C.bankBranch)}</dd></div>
+          </dl>
+          <p class="bank-note">${esc(C.paymentNote || "Once you've paid, please send us your payment slip on WhatsApp.")}</p>
+          <a class="btn btn-line btn-block no-arrow" href="${waLink("Hello Celvyr, here is my payment slip for my reservation.")}" target="_blank" rel="noopener">Send payment slip on WhatsApp</a>`;
+        $("#copyAcc").addEventListener("click", async () => {
+          try { await navigator.clipboard.writeText(C.bankAccountNumber); toast("Account number copied"); } catch { toast(C.bankAccountNumber); }
+        });
+        const sel = $('select[name="pay"]');
+        const sync = () => (bank.style.display = sel.value === "Bank transfer" ? "" : "none");
+        sel.addEventListener("change", sync); sync();
+      }
       const form = $("#coForm");
       form.addEventListener("submit", (e) => {
         e.preventDefault();
         if (!items.length) return toast("Add a gemstone to your bag first");
         const d = Object.fromEntries(new FormData(form));
-        const text = `Hello Celvyr — I'd like to reserve:\n${items.map((g) => `• ${g.name} (${g.ref}) — ${g.carat} ct — LKR ${g.price.toLocaleString("en-US")}`).join("\n")}\nTotal: LKR ${total.toLocaleString("en-US")}\n\nName: ${d.first} ${d.last}\nEmail: ${d.email}\nPhone: ${d.phone}\nAddress: ${d.street}${d.apt ? ", " + d.apt : ""}, ${d.city} ${d.postal}, ${d.country}\nPayment preference: ${d.pay}\n${store.get("celvyr_note", "") ? "Note: " + store.get("celvyr_note", "") : ""}`;
+        const text = `Hello Celvyr — I'd like to reserve:\n${items.map((g) => `• ${g.name} (${g.ref}) — ${g.carat} ct — LKR ${g.price.toLocaleString("en-US")}`).join("\n")}\nTotal: LKR ${total.toLocaleString("en-US")}\n\nName: ${d.first} ${d.last}\nEmail: ${d.email}\nPhone: ${d.phone}\nAddress: ${d.street}${d.apt ? ", " + d.apt : ""}, ${d.city} ${d.postal}, ${d.country}\nPayment preference: ${d.pay}${d.pay === "Bank transfer" && C.bankAccountNumber ? ` (to ${C.bankName}, ${C.bankAccountNumber})` : ""}\n${store.get("celvyr_note", "") ? "Note: " + store.get("celvyr_note", "") : ""}`;
         const via = e.submitter && e.submitter.dataset.via;
         window.open(via === "email" ? mailLink("Gemstone reservation", text) : waLink(text), "_blank");
         toast("Opening your message — just press send");

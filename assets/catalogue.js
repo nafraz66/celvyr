@@ -11,6 +11,12 @@ window.CELVYR = {
   email: "hello@celvyr.com",
   // Rough rate used for the USD view (1 USD = this many LKR)
   usdRate: 300,
+  // Bank transfer details shown on the checkout page (also editable in /admin → Settings)
+  bankAccountName: "MMI AHMED",
+  bankAccountNumber: "250020497254",
+  bankName: "HNB (Hatton National Bank)",
+  bankBranch: "Akurana",
+  paymentNote: "Once you've paid, please send us a photo of your payment slip on WhatsApp so we can confirm your stone.",
 };
 
 /* Each gemstone. To add one, copy a block and change the details.

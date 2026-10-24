@@ -413,3 +413,15 @@ s.was{color:var(--muted);font-size:.85em;margin-left:6px}
 .thumb.photo-thumb{padding:0;overflow:hidden}
 .thumb.photo-thumb img{width:100%;height:100%;object-fit:cover}
 .line-thumb img{width:100%;height:100%;object-fit:cover}
+
+/* ---------- bank transfer box ---------- */
+.bank{border:1px solid var(--navy);background:#fff;padding:20px 20px 22px;margin:4px 0 18px}
+.bank-head{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:12px}
+.bank dl{display:grid;grid-template-columns:1fr 1fr;gap:12px 20px;margin-bottom:16px}
+.bank dt{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.bank dd{font-size:15px;margin-top:2px}
+.bank .acc-no{font-size:18px;font-variant-numeric:tabular-nums;letter-spacing:.04em;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.bank .copy{border:1px solid var(--rule);background:none;font-size:11px;padding:3px 9px;cursor:pointer;letter-spacing:.06em}
+.bank .copy:hover{border-color:var(--navy)}
+.bank-note{font-size:13.5px;line-height:1.55;background:#F3EEE3;border-left:2px solid var(--gold-soft);padding:10px 12px;margin-bottom:14px}
+@media (max-width:620px){.bank dl{grid-template-columns:1fr}}

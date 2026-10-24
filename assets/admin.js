@@ -450,13 +450,23 @@
 
   /* ---------- settings ---------- */
   function viewSettings() {
-    const s = { whatsapp: "", email: "", usdRate: 300, announcement: "", footerTagline: "", ...state.settings };
+    const C0 = window.CELVYR || {};
+    const s = { whatsapp: "", email: "", usdRate: 300, announcement: "", footerTagline: "", bankAccountName: C0.bankAccountName || "", bankAccountNumber: C0.bankAccountNumber || "", bankName: C0.bankName || "", bankBranch: C0.bankBranch || "", paymentNote: C0.paymentNote || "", ...Object.fromEntries(Object.entries(state.settings).filter(([, v]) => v !== "" && v != null)) };
     const orig = JSON.stringify(s);
     shell("settings", `<div class="page narrow">
       <div class="ph"><h1>Settings</h1></div>
       <div class="card"><h2>Contact</h2>
         <div class="f"><label for="s_wa">WhatsApp number</label><input type="tel" id="s_wa" data-s="whatsapp" value="${esc(s.whatsapp)}" placeholder="94728993096"><div class="hint">Country code and number, digits only. Every WhatsApp button on the site uses this.</div></div>
         <div class="f"><label for="s_email">Email address</label><input type="email" id="s_email" data-s="email" value="${esc(s.email)}" placeholder="hello@celvyr.com"></div>
+      </div>
+      <div class="card"><h2>Bank transfer (shown on checkout)</h2>
+        <div class="grid2">
+          <div class="f"><label for="s_ban">Account name</label><input type="text" id="s_ban" data-s="bankAccountName" value="${esc(s.bankAccountName)}"></div>
+          <div class="f"><label for="s_bano">Account number</label><input type="text" id="s_bano" data-s="bankAccountNumber" value="${esc(s.bankAccountNumber)}"></div>
+          <div class="f"><label for="s_bn">Bank</label><input type="text" id="s_bn" data-s="bankName" value="${esc(s.bankName)}"></div>
+          <div class="f"><label for="s_bb">Branch</label><input type="text" id="s_bb" data-s="bankBranch" value="${esc(s.bankBranch)}"></div>
+        </div>
+        <div class="f"><label for="s_pn">Message after payment</label><textarea id="s_pn" data-s="paymentNote">${esc(s.paymentNote)}</textarea></div>
       </div>
       <div class="card"><h2>Currency</h2>
         <div class="f"><label for="s_rate">1 USD = how many LKR?</label><input type="number" id="s_rate" data-s="usdRate" value="${esc(s.usdRate)}" min="1"><div class="hint">Used when visitors switch prices to USD.</div></div>
