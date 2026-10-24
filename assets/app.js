@@ -63,19 +63,21 @@
     const cur = getCur();
     return `<div class="topbar">A gemstone story, rooted in Sri Lanka</div>
     <header class="header"><div class="wrap">
-      <a class="logo" href="index.html" aria-label="Celvyr home"><b>CELVYR</b><small>FINE GEMS · SRI LANKA</small></a>
-      <nav class="nav">${navItems.map(([h, t, k]) => `<a href="${h}" class="${page === k || (page === "gem" && k === "gemstones") ? "active" : ""}">${t}</a>`).join("")}</nav>
+      <div class="head-left">
+        <button class="burger" aria-label="Menu"><span></span></button>
+        <nav class="nav">${navItems.map(([h, t, k]) => `<a href="${h}" class="${page === k || (page === "gem" && k === "gemstones") ? "active" : ""}">${t}</a>`).join("")}</nav>
+      </div>
+      <a class="logo" href="index.html" aria-label="Celvyr Gems home"><img src="assets/logo-wordmark.webp" alt="Celvyr Gems — Ceylon · Heritage · Excellence" width="760" height="253"></a>
       <div class="head-right">
         <button class="cur" id="curToggle" title="Switch currency"><span class="${cur === "LKR" ? "on" : ""}">LKR</span> / <span class="${cur === "USD" ? "on" : ""}">USD</span></button>
         <a class="bag-btn" href="bag.html" aria-label="Shopping bag"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8h12l-1 12H7L6 8z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8" fill="none" stroke="currentColor" stroke-width="1.4"/></svg><span class="bag-count" id="bagCount">0</span></a>
-        <button class="burger" aria-label="Menu"><span></span></button>
       </div>
     </div></header>`;
   }
   function footer() {
     return `<footer class="footer"><div class="wrap">
       <div class="foot-grid">
-        <div><a class="logo" href="index.html"><b style="color:#fff">CELVYR</b><small>FINE GEMS · SRI LANKA</small></a>
+        <div><a class="logo foot-logo" href="index.html"><img src="assets/logo-wordmark.webp" alt="Celvyr Gems" width="760" height="253" loading="lazy"></a>
           <p>Extraordinary colour. Enduring character.<br>A personal journey to your next gemstone.</p></div>
         <div><h5>Explore</h5><ul><li><a href="gemstones.html">All gemstones</a></li><li><a href="gem.html?id=ceylon-blue-sapphire">The featured sapphire</a></li><li><a href="story.html">Our story</a></li></ul></div>
         <div><h5>Let us help</h5><ul><li><a href="contact.html">Contact Celvyr</a></li><li><a href="contact.html?topic=Delivery">Delivery enquiries</a></li><li><a href="contact.html?topic=Guidance">Gemstone guidance</a></li></ul></div>
